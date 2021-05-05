@@ -1,0 +1,164 @@
+const config = require("./dbconfig");
+const sql = require("mssql");
+
+async function getProducts() {
+  try {
+    const pool = await sql.connect(config);
+    const products = await pool.request().query("select * from Products");
+
+    return products.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getCustomer({ userName, pass }) {
+  try {
+    const pool = await sql.connect(config);
+    const customer = await pool.request().query(`
+      select * from Customer
+      where userName = '${userName}' and pass = '${pass}'
+    `);
+
+    return customer.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getOrders(customerId) {
+  try {
+    const pool = await sql.connect(config);
+    const products = await pool.request().query(`
+      select * 
+      from ProductOrder
+      where customerId = ${customerId}
+    `);
+
+    return products.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function createCustomer({ fullName, email, userName, pass }) {
+  try {
+    const pool = await sql.connect(config);
+    const customer = await pool.request().query(`
+      insert into Customer(fullName, email, userName, pass)
+      values('${fullName}', '${email}', '${userName}', '${pass}')
+    `);
+
+    return customer.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getProduct(name) {
+  try {
+    const pool = await sql.connect(config);
+    const product = await pool
+      .request()
+      .query(`select * from Products where name like '%${name}%'`);
+
+    return product.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getFavoriteProduct({ customerId }) {
+  try {
+    const pool = await sql.connect(config);
+    const product = await pool.request().query(`
+        select pr.Id, typeId, name, description, material, price, img
+        from ProductFavorite pf join Products pr
+        on pf.Id = pr.Id
+        where customerId = ${customerId}`);
+
+    return product.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function postFavorite(customerId, Id) {
+  try {
+    const pool = await sql.connect(config);
+    const product = await pool.request().query(`
+        insert into ProductFavorite(customerId, Id)
+        values('${customerId}', '${Id}')
+      `);
+
+    return product.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function editCustomer({ customerId, fullName, email, userName, pass }) {
+  try {
+    const pool = await sql.connect(config);
+    const product = await pool.request().query(`
+        update Customer
+        set fullName = '${fullName}', email = '${email}', userName = '${userName}', pass = '${pass}'
+        where customerId = '${customerId}'
+      `);
+
+    return product.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function createOrder({ customerId, totalMoney }) {
+  try {
+    const pool = await sql.connect(config);
+    const product = await pool.request().query(`
+        insert into ProductOrder(customerId, totalMoney)
+        values(${customerId}, ${totalMoney})
+    `);
+
+    return product.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function createDetailOrder({orderDetails}) {
+  try {
+    // select maxId
+    const pool = await sql.connect(config);
+    const order = await pool.request().query(`
+      select MAX(orderId) as Max
+      from ProductOrder
+    `);
+    
+    const orderId = order.recordset[0].Max
+  
+    orderDetails.map(async ({Id, typeId, quantity, money}) => {
+      let product = await pool.request().query(`
+        insert into OrderDetail
+        values(${orderId}, ${Id}, '${typeId}', ${quantity}, ${money})
+      `);
+    });
+
+    return 0;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+module.exports = {
+  getProducts,
+  getCustomer,
+  getProduct,
+  getOrders,
+  postFavorite,
+  createCustomer,
+  editCustomer,
+  getFavoriteProduct,
+  createOrder,
+  createDetailOrder,
+};
