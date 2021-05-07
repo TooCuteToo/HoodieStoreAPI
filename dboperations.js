@@ -12,6 +12,34 @@ async function getProducts() {
   }
 }
 
+async function getCategories() {
+  try {
+    const pool = await sql.connect(config);
+    const products = await pool.request().query("select * from ProductsType");
+
+    return products.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+async function getProductsByCategory(typeId) {
+  try {
+    const pool = await sql.connect(config);
+    const products = await pool.request().query(`
+      select pr.*
+      from Products pr join ProductsType pt 
+      on pr.typeId = pt.typeId
+      where pr.typeId = '${typeId}'
+    `);
+
+    return products.recordsets;
+  } catch (error) {
+    console.log(error);
+  }
+}
+
+
 async function getCustomer({ userName, pass }) {
   try {
     const pool = await sql.connect(config);
@@ -154,6 +182,8 @@ module.exports = {
   getProducts,
   getCustomer,
   getProduct,
+  getCategories,
+  getProductsByCategory,
   getOrders,
   postFavorite,
   createCustomer,
