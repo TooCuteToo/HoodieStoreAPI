@@ -41,17 +41,13 @@ async function getProductsByCategory(typeId) {
 
 
 async function getCustomer({ userName, pass }) {
-  try {
-    const pool = await sql.connect(config);
-    const customer = await pool.request().query(`
-      select * from Customer
-      where userName = '${userName}' and pass = '${pass}'
-    `);
+  const pool = await sql.connect(config);
+  const customer = await pool.request().query(`
+    select * from Customer
+    where userName = '${userName}' and pass = '${pass}'
+  `);
 
-    return customer.recordsets;
-  } catch (error) {
-    console.log(error);
-  }
+  return customer.recordsets;
 }
 
 async function getOrders(customerId) {
@@ -70,17 +66,13 @@ async function getOrders(customerId) {
 }
 
 async function createCustomer({ fullName, email, userName, pass }) {
-  try {
-    const pool = await sql.connect(config);
-    const customer = await pool.request().query(`
-      insert into Customer(fullName, email, userName, pass)
-      values('${fullName}', '${email}', '${userName}', '${pass}')
-    `);
+  const pool = await sql.connect(config);
+  const customer = await pool.request().query(`
+    insert into Customer(fullName, email, userName, pass)
+    values('${fullName}', '${email}', '${userName}', '${pass}')
+  `);
 
-    return customer.recordsets;
-  } catch (error) {
-    console.log(error);
-  }
+  return customer.recordsets;
 }
 
 async function getProduct(name) {
@@ -111,13 +103,16 @@ async function getFavoriteProduct({ customerId }) {
   }
 }
 
-async function postFavorite(customerId, Id) {
+async function getOrderDetail(orderId) {
   try {
     const pool = await sql.connect(config);
     const product = await pool.request().query(`
-        insert into ProductFavorite(customerId, Id)
-        values('${customerId}', '${Id}')
-      `);
+      select name, img, od.*
+      from OrderDetail od
+      join Products pr
+      on od.Id = pr.Id
+      where orderId = ${orderId}
+    `);
 
     return product.recordsets;
   } catch (error) {
@@ -125,19 +120,35 @@ async function postFavorite(customerId, Id) {
   }
 }
 
-async function editCustomer({ customerId, fullName, email, userName, pass }) {
-  try {
-    const pool = await sql.connect(config);
-    const product = await pool.request().query(`
-        update Customer
-        set fullName = '${fullName}', email = '${email}', userName = '${userName}', pass = '${pass}'
-        where customerId = '${customerId}'
-      `);
+async function postFavorite(customerId, Id) {
+  const pool = await sql.connect(config);
+  const product = await pool.request().query(`
+      insert into ProductFavorite(customerId, Id)
+      values('${customerId}', '${Id}')
+    `);
 
-    return product.recordsets;
-  } catch (error) {
-    console.log(error);
-  }
+  return product.recordsets;
+}
+
+async function deleteFavorite({ customerId, Id }) {
+  const pool = await sql.connect(config);
+  const product = await pool.request().query(`
+      delete ProductFavorite
+      where customerId = ${customerId} and Id = ${Id}
+    `);
+
+  return product.recordsets;
+}
+
+async function editCustomer({ customerId, fullName, email, userName, pass }) {
+  const pool = await sql.connect(config);
+  const product = await pool.request().query(`
+      update Customer
+      set fullName = '${fullName}', email = '${email}', userName = '${userName}', pass = '${pass}'
+      where customerId = '${customerId}'
+    `);
+
+  return product.recordsets;
 }
 
 async function createOrder({ customerId, totalMoney }) {
@@ -191,4 +202,6 @@ module.exports = {
   getFavoriteProduct,
   createOrder,
   createDetailOrder,
+  getOrderDetail,
+  deleteFavorite
 };

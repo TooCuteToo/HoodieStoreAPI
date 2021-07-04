@@ -13,6 +13,8 @@ const {
   createOrder,
   getCategories,
   getProductsByCategory,
+  getOrderDetail,
+  deleteFavorite
 } = require("./dboperations");
 
 router.get("/products", (req, res) => {
@@ -31,10 +33,15 @@ router.get("/categories/:id", (req, res) => {
   getProductsByCategory(req.params.id).then(result => res.json(result[0]));
 })
 
-router.post("/orders/:id", (req, res) => {
+router.get("/orders/:id", (req, res) => {
   const customerId = req.params.id;
   getOrders(customerId).then((result) => res.json(result[0]));
 });
+
+router.get("/ordersdetail/:id", (req, res) => {
+  const orderId = req.params.id;
+  getOrderDetail(orderId).then((result) => res.json(result[0]));
+})
 
 router.post("/favorites", (req, res) => {
   const favoriteProduct = { ...req.body };
@@ -50,12 +57,21 @@ router.post("/customer", (req, res) => {
 
 router.post("/customers", (req, res) => {
   const customer = { ...req.body };
-  return createCustomer(customer).then((result) => res.status(201).end());
+  return createCustomer(customer)
+  .then((result) => res.status(201).end())
+  .catch((error) => res.status(400).end());
 });
 
 router.post("/favorite", (req, res) =>
   getFavoriteProduct(req.body).then((result) => res.json(result[0]))
 );
+
+router.post("/delete_favorite", (req, res) => {
+  const favorite = { ...req.body };
+  return deleteFavorite(favorite)
+  .then((result) => res.status(201).end())
+  .catch((error) => res.status(400).end());
+})
 
 router.post("/orders", (req, res) => {
   console.log(req.body);
@@ -66,7 +82,9 @@ router.post("/orders", (req, res) => {
 
 router.put("/customer/:id", (req, res) => {
   const customer = { ...req.body, customerId: req.params.id };
-  return editCustomer(customer).then((result) => res.status(201).end());
+  return editCustomer(customer)
+  .then((result) => res.status(201).end())
+  .catch((error) => res.status(400).end());
 });
 
 module.exports = router;
