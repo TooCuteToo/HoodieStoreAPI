@@ -14,7 +14,8 @@ const {
   getCategories,
   getProductsByCategory,
   getOrderDetail,
-  deleteFavorite
+  deleteFavorite,
+  deleteOrder,
 } = require("./dboperations");
 
 router.get("/products", (req, res) => {
@@ -79,6 +80,12 @@ router.post("/orders", (req, res) => {
     createDetailOrder(req.body).then(() => res.status(201).end());
   });
 });
+
+router.post("/order_detail", (req, res) => {
+  deleteOrder(req.body)
+  .then((result) => res.status(200).end())
+  .catch((error) => res.status(400).end());
+})
 
 router.put("/customer/:id", (req, res) => {
   const customer = { ...req.body, customerId: req.params.id };

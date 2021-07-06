@@ -189,6 +189,20 @@ async function createDetailOrder({orderDetails}) {
   }
 }
 
+async function deleteOrder({orderId, }) {
+  const pool = await sql.connect(config);
+
+  const orderDetail = await pool.request().query(`
+    delete OrderDetail
+    where orderId = ${orderId}
+  `);
+
+  const productOrder = await pool.request().query(`
+    delete ProductOrder
+    where orderId = ${orderId}
+  `);
+}
+
 module.exports = {
   getProducts,
   getCustomer,
@@ -203,5 +217,6 @@ module.exports = {
   createOrder,
   createDetailOrder,
   getOrderDetail,
-  deleteFavorite
+  deleteFavorite,
+  deleteOrder,
 };
